@@ -9,7 +9,11 @@
 #include "message.h"
 
 void process_message(struct message * data){
-  printf("A message has been received. its content is: %s\n", data->key);
+  printf("A message has been received. its content is:\n");
+  printf("Key = %s\n", data->key);
+  printf("Value 1 = %s\n", data->value1);
+  printf("Value 2 = %d\n", data->value2);
+  printf("Queue name = %s\n", data->queue_name);
   pthread_exit(0);
 }
 

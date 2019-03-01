@@ -11,15 +11,13 @@
 int main(){
   mqd_t server_queue;
   server_queue = mq_open("/server", O_WRONLY);
-  float value2 = 1.1;
-  float * ptr = &value2;
 
   struct message msg_local;
   msg_local.request_type = '0';
   strcpy(msg_local.queue_name, "/server");
-  strcpy(msg_local.key, "key");
-  strcpy(msg_local.value1, "value1");
-  msg_local.value2 = ptr;
+  strcpy(msg_local.key, "key of the message");
+  strcpy(msg_local.value1, "this is value 1");
+  msg_local.value2 = 1.1;
 
   if(mq_send(server_queue, &msg_local, sizeof(struct message), 0) == -1){
     printf("Error sending the message\n");
