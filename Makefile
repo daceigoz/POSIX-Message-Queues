@@ -1,4 +1,7 @@
-all: server client
+all: keys server client
+
+keys:
+	gcc -Wall -fPIC -c keys.c
 
 server: server.c
 	gcc -Wall server.c -o server -lrt -pthread
