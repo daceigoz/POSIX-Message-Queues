@@ -8,7 +8,6 @@ struct message{
   char  key[MAX_SIZE];
   char  value1[MAX_SIZE];
   float value2;
-
 };
 
 #endif

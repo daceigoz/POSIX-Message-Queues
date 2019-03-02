@@ -6,9 +6,24 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "keys.h"
 #include "message.h"
 
 int main(){
+int init_=init();
+
+  printf("Response value from the server is: %d\n", init_);
+
+
+
+
+
+
+
+
+
+
+  /*
   mqd_t server_queue;
   server_queue = mq_open("/server", O_WRONLY);
 
@@ -24,5 +39,5 @@ int main(){
     return -1;
   }
 
-  mq_close(server_queue);
+  mq_close(server_queue);*/
 }
