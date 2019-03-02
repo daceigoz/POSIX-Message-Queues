@@ -53,7 +53,7 @@ void process_message(struct message * data){
       response=0; //set corect
 
     case 2: //Get value function
-      while(aux1->key!=data->key||aux1->next==NULL){ //search for the key
+      while(aux1->key!=data->key||aux1==NULL){ //search for the key
         if(aux1==NULL){//not found, sending error
           response=-1;
           if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
