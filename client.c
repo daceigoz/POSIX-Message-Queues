@@ -10,17 +10,75 @@
 #include "message.h"
 
 int main(){
-int init_=init();
+  int init_=init();
 
   printf("Response value from the server is: %d\n", init_);
 
+  int set_=set_value("hola","hola",1.1);
+  if(set_==-1){
+    printf("Error or key already exist\n");
+  }
+  else{
+    printf("Key inserted succesfully\n");
+  }
+
+  int exist_= exist("hola");
+  if(exist_== 0){
+    printf("Triplet with the given key does not exist.\n");
+  }
+  else if(exist_ == 1){
+    printf("A triplet with the given key exists\n");
+  }
+  else{
+    printf("Error checking its existence %d\n",exist_);
+  }
+
+  /*int get_=get_value("hola","hola",1.1);
+  if(get_==-1){
+    printf("Error or key already exist\n")
+  }
+  else{
+    printf("Key inserted succesfully\n", );
+  }*/
 
 
+  int modify_=modify_value("hola", "hola", 1.1);
+  if(modify_==-1){
+    printf("Error on modifying the triplet with the given key.\n");
+  }
+  else{
+    printf("Triplet with the given key successfully modified\n");
+  }
 
 
+  int delete_=delete_key("hola");
+  if(delete_==-1){
+    printf("Error deleting the triplet.\n");
+  }
+  else{
+    printf("Triplet succesfully deleted.\n");
+  }
 
 
+  int exist_1= exist("hola");
+  if(exist_1== 0){
+    printf("Triplet with the given key does not exist.\n");
+  }
+  else if(exist_1 == 1){
+    printf("A triplet with the given key exists\n");
+  }
+  else{
+    printf("Error checking its existence\n");
+  }
 
+
+  int items=num_items();
+  if(items==-1){
+    printf("Error on counting items\n");
+  }
+  else{
+    printf("There are: %d items in the server.\n", items);
+  }
 
 
   /*

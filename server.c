@@ -65,10 +65,7 @@ void process_message(struct message * data){
         }
         aux1=aux1->next;
       }
-      // NO SE COMO RETURNEAR LOS DOS VALORES EN VALUE1 y VALUE2 como dice el enunciado
-      strcpy(aux1->value1, data->value1);
-      aux1->value2=data->value2;
-      response=0; //get corect
+      response=0; //get correct
 
     case 3: //Modify value function
       while(aux1->key!=data->key||aux1==NULL){ //search for the key
@@ -85,7 +82,7 @@ void process_message(struct message * data){
       }
       strcpy(aux1->value1, data->value1);
       aux1->value2=data->value2;
-      response=0; //get corect
+      response=0; //get correct
 
     case 4: //Delete key function
       if (aux1->key==data->key&&aux1!=NULL){//check header
@@ -111,7 +108,7 @@ void process_message(struct message * data){
         aux1->next=aux2->next;//change pointers
       }
       free(aux2);//delete the key
-      response=0; //delete corect
+      response=0; //delete correct
     }
 
     case 5: //Exist function
@@ -120,6 +117,7 @@ void process_message(struct message * data){
           response=0;
           if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
             printf("Error sending the response\n");
+            response=-1;
           }
           mq_close(client_queue);
           printf("Thread terminated\n");
@@ -128,6 +126,7 @@ void process_message(struct message * data){
         aux1=aux1->next;
       }
     response=1; //key found
+
     case 6: //Num items function*/
       while(aux1!=NULL){
         counter++;
