@@ -19,8 +19,10 @@ int main(){
     printf("Error or key already exist\n");
   }
   else{
-    printf("Key inserted succesfully\n");
+    printf("Key inserted succesfully%d\n",set_);
   }
+
+
 
   int exist_= exist("hola");
   if(exist_== 0){
@@ -32,14 +34,14 @@ int main(){
   else{
     printf("Error checking its existence %d\n",exist_);
   }
-
-  /*int get_=get_value("hola","hola",1.1);
+/*
+  int get_=get_value("hola","hola",1.1);
   if(get_==-1){
     printf("Error or key already exist\n")
   }
   else{
     printf("Key inserted succesfully\n", );
-  }*/
+  }
 
 
   int modify_=modify_value("hola", "hola", 1.1);
@@ -81,7 +83,7 @@ int main(){
   }
 
 
-  /*
+
   mqd_t server_queue;
   server_queue = mq_open("/server", O_WRONLY);
 
@@ -95,7 +97,7 @@ int main(){
   if(mq_send(server_queue, &msg_local, sizeof(struct message), 0) == -1){
     printf("Error sending the message\n");
     return -1;
-  }
+  }*/
 
-  mq_close(server_queue);*/
+
 }

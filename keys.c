@@ -14,10 +14,9 @@
 int init(){
 
   char name_q[256];
-  sprintf(name_q, "/%d", getpid());
+  sprintf(name_q, "/i%d", getpid());
   //Creating the queue for init requests within the clients:
   mqd_t init_queue;
-
   struct mq_attr init_queue_attr;
 
   bzero(&init_queue_attr, sizeof(struct mq_attr));
@@ -77,8 +76,8 @@ int init(){
 
 int set_value(char*key, char *value1, float value2){
   //set_value will have the request type code '1'
-  char name_q[256];
-  sprintf(name_q, "/%d", getpid());
+  char name_s[256];
+  sprintf(name_s, "/s%d", getpid());
   //Creating the queue for init requests within the clients:
   mqd_t set_queue;
 
@@ -90,7 +89,7 @@ int set_value(char*key, char *value1, float value2){
   set_queue_attr.mq_flags = 0;
   set_queue_attr.mq_curmsgs = 0;
 
-  set_queue = mq_open(name_q, O_CREAT | O_RDONLY,  0777, &set_queue_attr);
+  set_queue = mq_open(name_s, O_CREAT | O_RDONLY,  0777, &set_queue_attr);
   if (set_queue == -1) {
     perror("Can't create set function queue.\n");
     return -1;
@@ -106,7 +105,7 @@ int set_value(char*key, char *value1, float value2){
   //Defining the set request message:
   struct message msg_set;
   msg_set.request_type = '1';  //set will have the request type code '1'
-  strcpy(msg_set.queue_name, name_q);
+  strcpy(msg_set.queue_name, name_s);
   strcpy(msg_set.key, key);
   strcpy(msg_set.value1, value1);
   msg_set.value2 = value2;
@@ -130,7 +129,7 @@ int set_value(char*key, char *value1, float value2){
   mq_close(server_queue);
 
   mq_close(set_queue);
-  mq_unlink(name_q);
+  mq_unlink(name_s);
 
   return response_value;
 }
@@ -139,8 +138,8 @@ int set_value(char*key, char *value1, float value2){
 
 
 int get_value(char *key, char *value1, float* value2){
-  char name_q[256];
-  sprintf(name_q, "/%d", getpid());
+  char name_g[256];
+  sprintf(name_g, "/g%d", getpid());
   //Creating the queue for get requests within the clients:
   mqd_t get_queue;
 
@@ -152,7 +151,7 @@ int get_value(char *key, char *value1, float* value2){
   get_queue_attr.mq_flags = 0;
   get_queue_attr.mq_curmsgs = 0;
 
-  get_queue = mq_open(name_q, O_CREAT | O_RDONLY,  0777, &get_queue_attr);
+  get_queue = mq_open(name_g, O_CREAT | O_RDONLY,  0777, &get_queue_attr);
   if (get_queue == -1) {
     perror("Can't create get_value function queue.\n");
     return -1;
@@ -168,7 +167,7 @@ int get_value(char *key, char *value1, float* value2){
   //Defining the get request message:
   struct message msg_get;
   msg_get.request_type = '2';  //get will have the request type code '2'
-  strcpy(msg_get.queue_name, name_q);
+  strcpy(msg_get.queue_name, name_g);
   strcpy(msg_get.key, key);
   strcpy(msg_get.value1, value1);
   msg_get.value2 = 0.0;
@@ -192,7 +191,7 @@ int get_value(char *key, char *value1, float* value2){
   mq_close(server_queue);
 
   mq_close(get_queue);
-  mq_unlink(name_q);
+  mq_unlink(name_g);
 
   return response_value;
 }
@@ -203,8 +202,8 @@ int get_value(char *key, char *value1, float* value2){
 int modify_value(char *key, char *value1, float value2){
   //modify_value will have the request type code '3'
 
-  char name_q[256];
-  sprintf(name_q, "/%d", getpid());
+  char name_m[256];
+  sprintf(name_m, "/m%d", getpid());
   //Creating the queue for modify requests within the clients:
   mqd_t modify_queue;
 
@@ -216,7 +215,7 @@ int modify_value(char *key, char *value1, float value2){
   modify_queue_attr.mq_flags = 0;
   modify_queue_attr.mq_curmsgs = 0;
 
-  modify_queue = mq_open(name_q, O_CREAT | O_RDONLY,  0777, &modify_queue_attr);
+  modify_queue = mq_open(name_m, O_CREAT | O_RDONLY,  0777, &modify_queue_attr);
   if (modify_queue == -1) {
     perror("Can't create modify function queue.\n");
     return -1;
@@ -232,7 +231,7 @@ int modify_value(char *key, char *value1, float value2){
   //Defining the modify request message:
   struct message msg_modify;
   msg_modify.request_type = '3';  //set will have the request type code '1'
-  strcpy(msg_modify.queue_name, name_q);
+  strcpy(msg_modify.queue_name, name_m);
   strcpy(msg_modify.key, key);
   strcpy(msg_modify.value1, value1);
   msg_modify.value2 = value2;
@@ -256,7 +255,7 @@ int modify_value(char *key, char *value1, float value2){
   mq_close(server_queue);
 
   mq_close(modify_queue);
-  mq_unlink(name_q);
+  mq_unlink(name_m);
 
   return response_value;
 }
@@ -265,8 +264,8 @@ int modify_value(char *key, char *value1, float value2){
 
 
 int delete_key(char *key){
-  char name_q[256];
-  sprintf(name_q, "/%d", getpid());
+  char name_d[256];
+  sprintf(name_d, "/d%d", getpid());
   //Creating the queue for init requests within the clients:
   mqd_t delete_queue;
 
@@ -278,7 +277,7 @@ int delete_key(char *key){
   delete_queue_attr.mq_flags = 0;
   delete_queue_attr.mq_curmsgs = 0;
 
-  delete_queue = mq_open(name_q, O_CREAT | O_RDONLY,  0777, &delete_queue_attr);
+  delete_queue = mq_open(name_d, O_CREAT | O_RDONLY,  0777, &delete_queue_attr);
   if (delete_queue == -1) {
     perror("Can't create delete function queue.\n");
     return -1;
@@ -294,7 +293,7 @@ int delete_key(char *key){
   //Defining the set request message:
   struct message msg_delete;
   msg_delete.request_type = '1';  //delete will have the request type code '4'
-  strcpy(msg_delete.queue_name, name_q);
+  strcpy(msg_delete.queue_name, name_d);
   strcpy(msg_delete.key, key);
   strcpy(msg_delete.value1, "");
   msg_delete.value2 = 0.0;
@@ -318,7 +317,7 @@ int delete_key(char *key){
   mq_close(server_queue);
 
   mq_close(delete_queue);
-  mq_unlink(name_q);
+  mq_unlink(name_d);
 
   return response_value;
 }
@@ -327,8 +326,8 @@ int delete_key(char *key){
 
 
 int exist(char *key){
-  char name_q[256];
-  sprintf(name_q, "/%d", getpid());
+  char name_e[256];
+  sprintf(name_e, "/e%d", getpid());
   //Creating the queue for exist requests within the clients:
   mqd_t exist_queue;
 
@@ -340,7 +339,7 @@ int exist(char *key){
   exist_queue_attr.mq_flags = 0;
   exist_queue_attr.mq_curmsgs = 0;
 
-  exist_queue = mq_open(name_q, O_CREAT | O_RDONLY,  0777, &exist_queue_attr);
+  exist_queue = mq_open(name_e, O_CREAT | O_RDONLY,  0777, &exist_queue_attr);
   if (exist_queue == -1) {
     perror("Can't create exist function queue.\n");
     return -1;
@@ -357,7 +356,7 @@ int exist(char *key){
   //Defining the exist request message:
   struct message msg_exist;
   msg_exist.request_type = '5';  //exist will have the request type code '5'
-  strcpy(msg_exist.queue_name, name_q);
+  strcpy(msg_exist.queue_name, name_e);
   strcpy(msg_exist.key, key);
   strcpy(msg_exist.value1, "");
   msg_exist.value2 = 0.0;
@@ -383,7 +382,7 @@ int exist(char *key){
   mq_close(server_queue);
 
   mq_close(exist_queue);
-  mq_unlink(name_q);
+  mq_unlink(name_e);
 
   return response_value;
 }
@@ -392,8 +391,8 @@ int exist(char *key){
 
 
 int num_items(){
-  char name_q[256];
-  sprintf(name_q, "/%d", getpid());
+  char name_n[256];
+  sprintf(name_n, "/n%d", getpid());
   //Creating the queue for num_items requests within the clients:
   mqd_t num_queue;
 
@@ -405,7 +404,7 @@ int num_items(){
   num_queue_attr.mq_flags = 0;
   num_queue_attr.mq_curmsgs = 0;
 
-  num_queue = mq_open(name_q, O_CREAT | O_RDONLY,  0777, &num_queue_attr);
+  num_queue = mq_open(name_n, O_CREAT | O_RDONLY,  0777, &num_queue_attr);
   if (num_queue == -1) {
     perror("Can't create num items function queue.\n");
     return -1;
@@ -421,7 +420,7 @@ int num_items(){
   //Defining the exist request message:
   struct message msg_num;
   msg_num.request_type = '6';  //exist will have the request type code '6'
-  strcpy(msg_num.queue_name, name_q);
+  strcpy(msg_num.queue_name, name_n);
   strcpy(msg_num.key, "");
   strcpy(msg_num.value1, "");
   msg_num.value2 = 0.0;
@@ -445,7 +444,7 @@ int num_items(){
   mq_close(server_queue);
 
   mq_close(num_queue);
-  mq_unlink(name_q);
+  mq_unlink(name_n);
 
   return response_value;
 }

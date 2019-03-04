@@ -11,7 +11,7 @@
 
 
 struct node * head=NULL;
-void process_message(struct message * data){
+void *process_message(struct message * data){
   int response,counter;
   struct node * aux1 = head;
   struct node * aux2 = head;
@@ -30,7 +30,7 @@ void process_message(struct message * data){
   }
 
   switch (data->request_type) {
-    case 0: //Init function
+    case '0': //Init function
       printf("Client queue has been opened\n");
       //CONTENT OF THE INIT FUNCTION
       //Release memory previously used
@@ -38,22 +38,36 @@ void process_message(struct message * data){
         aux1=aux1->next;
         free(aux2);
         aux2=aux1;
+        printf("header\n");
       }
       response=0; //init correct
 
-    case 1: //Set value function
-      while(aux1!=NULL){ //search for the first empty node
-        aux1=aux1->next;
+    case '1': //Set value function
+      if(aux1==NULL){//check header
+        strcpy(aux1->key, data->key);
+        strcpy(aux1->value1, data->value1);
+        aux1->value2=data->value2;
+        aux1->next=NULL;
+        response=0; //set corect
+        printf("header\n");
       }
-      aux1=malloc(sizeof(node_t));
-      strcpy(aux1->key, data->key);
-      strcpy(aux1->value1, data->value1);
-      aux1->value2=data->value2;
-      aux1->next=NULL;
-      response=0; //set corect
+      else{
+        while(aux1->next!=NULL){ //search for the first empty node
+          aux1=aux1->next;
+        }
+        aux2=aux1->next;
+        aux2=malloc(sizeof(node_t));
+        strcpy(aux2->key, data->key);
+        strcpy(aux2->value1, data->value1);
+        aux2->value2=data->value2;
+        aux2->next=NULL;
+        aux1->next=aux2;
+        response=0; //set corect
+        printf("header\n");
+      }
 
-    case 2: //Get value function
-      while(aux1->key!=data->key||aux1==NULL){ //search for the key
+    case '2': //Get value function
+      while(aux1->key!=data->key){ //search for the key
         if(aux1==NULL){//not found, sending error
           response=-1;
           if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
@@ -67,8 +81,8 @@ void process_message(struct message * data){
       }
       response=0; //get correct
 
-    case 3: //Modify value function
-      while(aux1->key!=data->key||aux1==NULL){ //search for the key
+    case '3': //Modify value function
+      while(aux1->key!=data->key){ //search for the key
         if(aux1==NULL){//not found, sending error
           response=-1;
           if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
@@ -84,14 +98,14 @@ void process_message(struct message * data){
       aux1->value2=data->value2;
       response=0; //get correct
 
-    case 4: //Delete key function
+    case '4': //Delete key function
       if (aux1->key==data->key&&aux1!=NULL){//check header
         head=head->next;
         free(aux1);
         response=0;
       }
       else{
-        while(aux1->next->key!=data->key||aux1->next==NULL){ //search for the key
+        while(aux1->next->key!=data->key){ //search for the key
           if(aux1->next==NULL){//not found, sending error
             response=-1;
             if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
@@ -111,10 +125,11 @@ void process_message(struct message * data){
       response=0; //delete correct
     }
 
-    case 5: //Exist function
-      while(aux1->key!=data->key||aux1==NULL){ //search for the key
+    case '5': //Exist function
+      while(aux1->key!=data->key){ //search for the key
         if(aux1==NULL){//not found, sending result
           response=0;
+          printf("header\n");
           if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
             printf("Error sending the response\n");
             response=-1;
@@ -127,7 +142,7 @@ void process_message(struct message * data){
       }
     response=1; //key found
 
-    case 6: //Num items function*/
+    case '6': //Num items function*/
       while(aux1!=NULL){
         counter++;
         aux1=aux1->next;
@@ -152,9 +167,9 @@ void process_message(struct message * data){
 
     mqd_t server_queue;
     pthread_t thid;
-    pthread_attr_t attr;
+    /*pthread_attr_t attr;
     pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);*/
     struct message data;
 
 
@@ -181,7 +196,7 @@ void process_message(struct message * data){
       }
 
 
-      if(pthread_create(&thid, &attr, process_message, &data) == -1){
+      if(pthread_create(&thid, NULL, (void*)process_message, &data) == -1){
         printf("Error creating the thread,\n");
         return -1;
       }
