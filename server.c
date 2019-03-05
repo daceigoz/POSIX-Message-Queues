@@ -11,6 +11,7 @@
 
 
 struct node * head=NULL;
+
 void *process_message(struct message * data){
   int response,counter;
   struct node * aux1 = head;
@@ -29,6 +30,8 @@ void *process_message(struct message * data){
     pthread_exit(0);
   }
 
+  printf("request type: %c\n", data->request_type);
+
   switch (data->request_type) {
     case '0': //Init function
       printf("Client queue has been opened\n");
@@ -38,36 +41,44 @@ void *process_message(struct message * data){
         aux1=aux1->next;
         free(aux2);
         aux2=aux1;
-        printf("header\n");
       }
       response=0; //init correct
+      break;
 
     case '1': //Set value function
       if(aux1==NULL){//check header
-        strcpy(aux1->key, data->key);
-        strcpy(aux1->value1, data->value1);
-        aux1->value2=data->value2;
-        aux1->next=NULL;
-        response=0; //set corect
-        printf("header\n");
+        head=malloc(sizeof(struct node));
+        strcpy(head->key, data->key);
+        strcpy(head->value1, data->value1);
+        head->value2=data->value2;
+        head->next=NULL;
+        response=0; //set correct
       }
       else{
-        while(aux1->next!=NULL){ //search for the first empty node
+        int exists=0;
+        while(aux1!=NULL){ //checking if the key already exists in the server
+          if(strcmp(aux1->key,data->key)==0){
+            exists=1;
+          }
           aux1=aux1->next;
         }
-        aux2=aux1->next;
-        aux2=malloc(sizeof(node_t));
-        strcpy(aux2->key, data->key);
-        strcpy(aux2->value1, data->value1);
-        aux2->value2=data->value2;
-        aux2->next=NULL;
-        aux1->next=aux2;
-        response=0; //set corect
-        printf("header\n");
+        if(exists==0){
+          struct node * temp=malloc(sizeof(struct node));
+          strcpy(temp->key, data->key);
+          strcpy(temp->value1, data->value1);
+          temp->value2=data->value2;
+          temp->next=head;
+          head=temp;
+          response=0; //set correct
+        }
+        else{
+          response=-1; //In this case the key already exists in the server
+        }
       }
+      break;
 
     case '2': //Get value function
-      while(aux1->key!=data->key){ //search for the key
+      while(strcmp(head->key,data->key)!=0){ //search for the key
         if(aux1==NULL){//not found, sending error
           response=-1;
           if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
@@ -80,9 +91,10 @@ void *process_message(struct message * data){
         aux1=aux1->next;
       }
       response=0; //get correct
+      break;
 
     case '3': //Modify value function
-      while(aux1->key!=data->key){ //search for the key
+      while(strcmp(head->key,data->key)!=0){ //search for the key
         if(aux1==NULL){//not found, sending error
           response=-1;
           if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
@@ -96,18 +108,22 @@ void *process_message(struct message * data){
       }
       strcpy(aux1->value1, data->value1);
       aux1->value2=data->value2;
+      printf("The new values for the key %s are %s and %f\n", aux1->key, aux1->value1, aux1->value2);
+
       response=0; //get correct
+      break;
 
     case '4': //Delete key function
-      if (aux1->key==data->key&&aux1!=NULL){//check header
-        head=head->next;
+      if (strcmp(head->key,data->key)==0&&head!=NULL){//check header
+        head=aux1->next;
         free(aux1);
         response=0;
+        printf("head removed\n");
       }
       else{
-        while(aux1->next->key!=data->key){ //search for the key
-          if(aux1->next==NULL){//not found, sending error
-            response=-1;
+        while(strcmp(aux1->next->key,data->key)!=0){ //search for the key
+          if(aux1->next==NULL){//not found
+            response = -1;
             if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
               printf("Error sending the response\n");
             }
@@ -124,12 +140,17 @@ void *process_message(struct message * data){
       free(aux2);//delete the key
       response=0; //delete correct
     }
+    break;
 
     case '5': //Exist function
-      while(aux1->key!=data->key){ //search for the key
-        if(aux1==NULL){//not found, sending result
+    if(aux1==NULL){
+      response=0;
+    }
+    else{
+      while(strcmp(aux1->key,data->key)!=0){ //search for the key
+        if(aux1->next==NULL){//not found, sending result
           response=0;
-          printf("header\n");
+          printf("asd\n");
           if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
             printf("Error sending the response\n");
             response=-1;
@@ -141,6 +162,8 @@ void *process_message(struct message * data){
         aux1=aux1->next;
       }
     response=1; //key found
+  }
+    break;
 
     case '6': //Num items function*/
       while(aux1!=NULL){
@@ -148,7 +171,10 @@ void *process_message(struct message * data){
         aux1=aux1->next;
       }
       response=counter;
+      break;
   }
+
+
 
   if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
     printf("Error sending the response\n");
@@ -157,13 +183,9 @@ void *process_message(struct message * data){
   mq_close(client_queue);
   printf("Thread terminated\n");
   pthread_exit(0);
-
-  }
+}
 
   int main(){
-
-    head=malloc(sizeof(node_t));
-    head->next=NULL;
 
     mqd_t server_queue;
     pthread_t thid;

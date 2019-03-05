@@ -22,6 +22,13 @@ int main(){
     printf("Key inserted succesfully%d\n",set_);
   }
 
+  int set1=set_value("hola","hello",1.5);
+  if(set1==-1){
+    printf("Error or key already exists\n");
+  }
+  else{
+    printf("Key inserted succesfully%d\n",set_);
+  }
 
 
   int exist_= exist("hola");
@@ -33,6 +40,26 @@ int main(){
   }
   else{
     printf("Error checking its existence %d\n",exist_);
+  }
+
+
+  int exist_1= exist("hello");
+  if(exist_1== 0){
+    printf("Triplet with the given key does not exist.\n");
+  }
+  else if(exist_1 == 1){
+    printf("A triplet with the given key exists\n");
+  }
+  else{
+    printf("Error checking its existence %d\n", exist_1);
+  }
+
+  int items=num_items();
+  if(items==-1){
+    printf("Error on counting items\n");
+  }
+  else{
+    printf("There are: %d items in the server.\n", items);
   }
 /*
   int get_=get_value("hola","hola",1.1);

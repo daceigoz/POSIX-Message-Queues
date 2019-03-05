@@ -292,7 +292,7 @@ int delete_key(char *key){
 
   //Defining the set request message:
   struct message msg_delete;
-  msg_delete.request_type = '1';  //delete will have the request type code '4'
+  msg_delete.request_type = '4';  //delete will have the request type code '4'
   strcpy(msg_delete.queue_name, name_d);
   strcpy(msg_delete.key, key);
   strcpy(msg_delete.value1, "");
