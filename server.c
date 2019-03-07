@@ -6,8 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "node_t.h"
 #include "message.h"
+#include "get_result.h"
 
 
 struct node * head=NULL;
@@ -21,11 +23,6 @@ void *process_message(struct message * data){
   client_queue = mq_open(data->queue_name, O_WRONLY);
   if(client_queue == -1){
     perror("Error opening client message queue.\n");
-    response=-1;//send error
-    if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
-      printf("Error sending the response\n");
-    }
-    mq_close(client_queue);
     printf("Thread terminated\n");
     pthread_exit(0);
   }
@@ -87,6 +84,19 @@ void *process_message(struct message * data){
         }
         aux1=aux1->next;
       }
+      struct get_result results;
+
+      results.op_result=response;
+      strcpy(results.get_value1, aux1->value1);
+      results.get_value2=aux1->value2;
+
+      //Given that for the get function the kind of return message is a structure, the send message and queue closing will be done directly here:
+      if(mq_send(client_queue, (char *)&results, sizeof(struct get_result), 0) == -1){
+        printf("Error sending the response\n");
+      }
+      mq_close(client_queue);
+      printf("Thread terminated\n");
+      pthread_exit(0);
       break;
 
     case '3': //Modify value function

@@ -22,6 +22,19 @@ int main(){
     printf("Key inserted succesfully%d\n",set_);
   }
 
+  char auxstring[256];
+  float auxfloat=0.0f;
+
+  int get_=get_value("hola", auxstring, &auxfloat);
+  if(get_==-1){
+    printf("Error getting the values of that key or key does not exist\n");
+  }
+  else{
+    printf("Key values successfully retrieved:\n");
+    printf("Value 1 received: %s\n", auxstring);
+    printf("Value 2 received: %f\n", auxfloat);
+  }
+
   int set1=set_value("hola","hello",1.5);
   if(set1==-1){
     printf("Error or key already exists\n");

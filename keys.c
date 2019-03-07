@@ -10,6 +10,8 @@
 
 #include "keys.h"
 #include "message.h"
+#include "get_result.h"
+
 
 int init(){
 
@@ -146,7 +148,7 @@ int get_value(char *key, char *value1, float* value2){
   struct mq_attr get_queue_attr;
 
   bzero(&get_queue_attr, sizeof(struct mq_attr));
-  get_queue_attr.mq_msgsize = sizeof(int);
+  get_queue_attr.mq_msgsize = sizeof(struct get_result);
   get_queue_attr.mq_maxmsg = 10;
   get_queue_attr.mq_flags = 0;
   get_queue_attr.mq_curmsgs = 0;
@@ -169,7 +171,7 @@ int get_value(char *key, char *value1, float* value2){
   msg_get.request_type = '2';  //get will have the request type code '2'
   strcpy(msg_get.queue_name, name_g);
   strcpy(msg_get.key, key);
-  strcpy(msg_get.value1, value1);
+  strcpy(msg_get.value1, "");
   msg_get.value2 = 0.0;
 
   //Sending the init request:
@@ -178,14 +180,17 @@ int get_value(char *key, char *value1, float* value2){
     return -1;
   }
 
-  int response_value; //This variable wil be the recipient for the result of the response.
+  struct get_result get_values; //This variable wil be the recipient for the result of the response.
 
   //Receiving the response from the server to the get function call:
-  if(mq_receive(get_queue, (char *)&response_value, sizeof(int), 0) == -1){
+  if(mq_receive(get_queue, (char *)&get_values, sizeof(struct get_result), 0) == -1){
     printf("Error receiving the result of the get call.\n");
     return -1;
   }
-  //printf("The values of the requested triplet are: blablabla.\n");
+
+  //Copying the returned values from the server to the parameter memory addresses:
+  strcpy(value1, get_values.get_value1);
+  *value2=get_values.get_value2;
 
   //Closing the opened queues:
   mq_close(server_queue);
@@ -193,7 +198,7 @@ int get_value(char *key, char *value1, float* value2){
   mq_close(get_queue);
   mq_unlink(name_g);
 
-  return response_value;
+  return get_values.op_result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
