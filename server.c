@@ -11,7 +11,7 @@
 #include "message.h"
 #include "get_result.h"
 
-
+pthread_mutex_t mutex;
 struct node * head=NULL;
 
 void *process_message(struct message * data){
@@ -28,7 +28,7 @@ void *process_message(struct message * data){
   }
 
   printf("request type: %c\n", data->request_type);
-
+  pthread_mutex_lock(&mutex);
   switch (data->request_type) {
     case '0': //Init function
       printf("Client queue has been opened\n");
@@ -89,7 +89,7 @@ void *process_message(struct message * data){
       results.op_result=response;
       strcpy(results.get_value1, aux1->value1);
       results.get_value2=aux1->value2;
-
+      pthread_mutex_unlock(&mutex);
       //Given that for the get function the kind of return message is a structure, the send message and queue closing will be done directly here:
       if(mq_send(client_queue, (char *)&results, sizeof(struct get_result), 0) == -1){
         printf("Error sending the response\n");
@@ -163,8 +163,7 @@ void *process_message(struct message * data){
       break;
   }
 
-
-
+  pthread_mutex_unlock(&mutex);
   if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
     printf("Error sending the response\n");
   }
@@ -182,6 +181,7 @@ void *process_message(struct message * data){
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     struct message data;
+    pthread_mutex_init(&mutex,NULL);
 
 
     struct mq_attr queue_attr;
