@@ -21,6 +21,11 @@ void *process_message(struct message * data){
   client_queue = mq_open(data->queue_name, O_WRONLY);
   if(client_queue == -1){
     perror("Error opening client message queue.\n");
+    response=-1;//send error
+    if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
+      printf("Error sending the response\n");
+    }
+    mq_close(client_queue);
     printf("Thread terminated\n");
     pthread_exit(0);
   }
@@ -34,10 +39,10 @@ void *process_message(struct message * data){
       //Release memory previously used
       while(aux1!=NULL){
         aux1=aux1->next;
-        if (aux2) free(aux2);
+        free(aux2);
         aux2=aux1;
       }
-      head = NULL;
+      head=NULL;
       response=0; //init correct
       break;
 
@@ -74,39 +79,28 @@ void *process_message(struct message * data){
       break;
 
     case '2': //Get value function
+      response=0;
       while(strcmp(head->key,data->key)!=0){ //search for the key
         if(aux1==NULL){//not found, sending error
           response=-1;
-          if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
-            printf("Error sending the response\n");
-          }
-          mq_close(client_queue);
-          printf("Thread terminated\n");
-          pthread_exit(0);
+          break;
         }
         aux1=aux1->next;
       }
-      response=0; //get correct
       break;
 
     case '3': //Modify value function
+      response=0;
       while(strcmp(head->key,data->key)!=0){ //search for the key
         if(aux1==NULL){//not found, sending error
           response=-1;
-          if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
-            printf("Error sending the response\n");
-          }
-          mq_close(client_queue);
-          printf("Thread terminated\n");
-          pthread_exit(0);
+          break;
         }
         aux1=aux1->next;
       }
       strcpy(aux1->value1, data->value1);
       aux1->value2=data->value2;
       printf("The new values for the key %s are %s and %f\n", aux1->key, aux1->value1, aux1->value2);
-
-      response=0; //get correct
       break;
 
     case '4': //Delete key function
@@ -117,15 +111,11 @@ void *process_message(struct message * data){
         printf("head removed\n");
       }
       else{
+        response=0;
         while(strcmp(aux1->next->key,data->key)!=0){ //search for the key
           if(aux1->next==NULL){//not found
             response = -1;
-            if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
-              printf("Error sending the response\n");
-            }
-            mq_close(client_queue);
-            printf("Thread terminated\n");
-            pthread_exit(0);
+            break;
           }
           aux1=aux1->next;
         }
@@ -134,11 +124,11 @@ void *process_message(struct message * data){
         aux1->next=aux2->next;//change pointers
       }
       free(aux2);//delete the key
-      response=0; //delete correct
     }
     break;
 
     case '5': //Exist function
+      response=1;
     if(aux1==NULL){
       response=0;
     }
@@ -146,23 +136,15 @@ void *process_message(struct message * data){
       while(strcmp(aux1->key,data->key)!=0){ //search for the key
         if(aux1->next==NULL){//not found, sending result
           response=0;
-          printf("asd\n");
-          if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
-            printf("Error sending the response\n");
-            response=-1;
-          }
-          mq_close(client_queue);
-          printf("Thread terminated\n");
-          pthread_exit(0);
+          break;
         }
         aux1=aux1->next;
       }
-    response=1; //key found
   }
     break;
 
     case '6': //Num items function*/
-      counter = 0;
+    counter=0;
       while(aux1!=NULL){
         counter++;
         aux1=aux1->next;

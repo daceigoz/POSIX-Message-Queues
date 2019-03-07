@@ -1,6 +1,6 @@
 all: keys server client
 
-keys:
+keys: keys.c
 	gcc -g -Wall -c keys.c
 	ar -rv libkeys.a keys.o
 
