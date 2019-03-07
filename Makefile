@@ -1,14 +1,14 @@
 all: keys server client
 
 keys:
-	gcc -Wall -c keys.c
+	gcc -g -Wall -c keys.c
 	ar -rv libkeys.a keys.o
 
 server: server.c
-	gcc -Wall server.c -o server -lrt -pthread
+	gcc -g -Wall server.c -o server -lrt -pthread
 
 client: client.c
-	gcc -Wall -o client client.c libkeys.a -lrt
+	gcc -g -Wall -o client client.c libkeys.a -lrt
 
 clean:
 	rm -f client

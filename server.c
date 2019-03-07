@@ -21,11 +21,6 @@ void *process_message(struct message * data){
   client_queue = mq_open(data->queue_name, O_WRONLY);
   if(client_queue == -1){
     perror("Error opening client message queue.\n");
-    response=-1;//send error
-    if(mq_send(client_queue, (char *)&response, sizeof(int), 0) == -1){
-      printf("Error sending the response\n");
-    }
-    mq_close(client_queue);
     printf("Thread terminated\n");
     pthread_exit(0);
   }
@@ -39,9 +34,10 @@ void *process_message(struct message * data){
       //Release memory previously used
       while(aux1!=NULL){
         aux1=aux1->next;
-        free(aux2);
+        if (aux2) free(aux2);
         aux2=aux1;
       }
+      head = NULL;
       response=0; //init correct
       break;
 
@@ -166,6 +162,7 @@ void *process_message(struct message * data){
     break;
 
     case '6': //Num items function*/
+      counter = 0;
       while(aux1!=NULL){
         counter++;
         aux1=aux1->next;
@@ -189,9 +186,9 @@ void *process_message(struct message * data){
 
     mqd_t server_queue;
     pthread_t thid;
-    /*pthread_attr_t attr;
+    pthread_attr_t attr;
     pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);*/
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     struct message data;
 
 
@@ -218,7 +215,7 @@ void *process_message(struct message * data){
       }
 
 
-      if(pthread_create(&thid, NULL, (void*)process_message, &data) == -1){
+      if(pthread_create(&thid, &attr, (void*)process_message, &data) == -1){
         printf("Error creating the thread,\n");
         return -1;
       }

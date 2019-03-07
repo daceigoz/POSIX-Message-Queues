@@ -30,7 +30,6 @@ int main(){
     printf("Key inserted succesfully%d\n",set_);
   }
 
-
   int exist_= exist("hola");
   if(exist_== 0){
     printf("Triplet with the given key does not exist.\n");
