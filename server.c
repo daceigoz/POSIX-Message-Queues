@@ -27,7 +27,7 @@ void *process_message(struct message * data){
   msg_not_copied = 0;
   pthread_cond_signal(&cond_msg);
   pthread_mutex_unlock(&mutex_msg);
-  
+
   pthread_mutex_lock(&mutex);
   int response,counter;
   struct node * aux1 = head;
@@ -39,16 +39,17 @@ void *process_message(struct message * data){
 
   //Opening client queue
   mqd_t client_queue;
-  client_queue = mq_open(data->queue_name, O_WRONLY);
+  client_queue = mq_open(msg_local.queue_name, O_WRONLY);
   if(client_queue == -1){
     perror("Error opening client message queue.\n");
     printf("Thread terminated\n");
+    pthread_mutex_unlock(&mutex);
     pthread_exit(0);
   }
 
-  printf("request type: %c\n", data->request_type);
-  
-  switch (data->request_type) {
+  printf("request type: %c\n", msg_local.request_type);
+
+  switch (msg_local.request_type) {
     case '0': //Init function
 
       //CONTENT OF THE INIT FUNCTION
@@ -64,25 +65,25 @@ void *process_message(struct message * data){
     case '1': //Set value function
       if(aux1==NULL){//check header
         head=malloc(sizeof(struct node));
-        strcpy(head->key, data->key);
-        strcpy(head->value1, data->value1);
-        head->value2=data->value2;
+        strcpy(head->key, msg_local.key);
+        strcpy(head->value1, msg_local.value1);
+        head->value2=msg_local.value2;
         head->next=NULL;
         response=0; //set correct
       }
       else{
         int exists=0;
         while(aux1!=NULL){ //checking if the key already exists in the server
-          if(strcmp(aux1->key,data->key)==0){
+          if(strcmp(aux1->key,msg_local.key)==0){
             exists=1;
           }
           aux1=aux1->next;
         }
         if(exists==0){
           struct node * temp=malloc(sizeof(struct node));
-          strcpy(temp->key, data->key);
-          strcpy(temp->value1, data->value1);
-          temp->value2=data->value2;
+          strcpy(temp->key, msg_local.key);
+          strcpy(temp->value1, msg_local.value1);
+          temp->value2=msg_local.value2;
           temp->next=head;
           head=temp;
           response=0; //set correct
@@ -94,9 +95,25 @@ void *process_message(struct message * data){
       break;
 
     case '2': //Get value function
+      printf("into get function\n");
+
+      if(aux1==NULL){
+        results.op_result=-1;
+        printf("Not found, sending error\n");
+        if(mq_send(client_queue, (char *)&results, sizeof(struct get_result), 0) == -1){
+          printf("Error sending the response\n");
+        }
+        mq_close(client_queue);
+        printf("Thread terminated\n");
+        pthread_mutex_unlock(&mutex);
+        pthread_exit(0);
+      }
+
       results.op_result=0;
-      while(strcmp(head->key,data->key)!=0){ //search for the key
+      while(strcmp(head->key,msg_local.key)!=0){ //search for the key
+        printf("Searching the key...\n");
         if(aux1==NULL){//not found, sending error
+          printf("Not found, sending error\n");
           results.op_result=-1;
           if(mq_send(client_queue, (char *)&results, sizeof(struct get_result), 0) == -1){
             printf("Error sending the response\n");
@@ -106,6 +123,7 @@ void *process_message(struct message * data){
           pthread_mutex_unlock(&mutex);
           pthread_exit(0);
         }
+        printf("aux1=aux1->next\n");
         aux1=aux1->next;
       }
       strcpy(results.get_value1, aux1->value1);
@@ -120,21 +138,27 @@ void *process_message(struct message * data){
       pthread_exit(0);
 
     case '3': //Modify value function
+
+      if(head==NULL){
+        response=-1;
+        printf("There is no triplet stored, no value can be modified.\n");
+        break;
+      }
       response=0;
-      while(strcmp(head->key,data->key)!=0){ //search for the key
+      while(strcmp(head->key,msg_local.key)!=0){ //search for the key
         if(aux1==NULL){//not found, sending error
           response=-1;
           break;
         }
         aux1=aux1->next;
       }
-      strcpy(aux1->value1, data->value1);
-      aux1->value2=data->value2;
+      strcpy(aux1->value1, msg_local.value1);
+      aux1->value2=msg_local.value2;
       printf("The new values for the key %s are %s and %f\n", aux1->key, aux1->value1, aux1->value2);
       break;
 
     case '4': //Delete key function
-      if (strcmp(head->key,data->key)==0&&head!=NULL){//check header
+      if (strcmp(head->key,msg_local.key)==0 && head!=NULL){//check header
         head=aux1->next;
         free(aux1);
         response=0;
@@ -142,7 +166,7 @@ void *process_message(struct message * data){
       }
       else{
         response=0;
-        while(strcmp(aux1->next->key,data->key)!=0){ //search for the key
+        while(strcmp(aux1->next->key,msg_local.key)!=0){ //search for the key
           if(aux1->next==NULL){//not found
             response = -1;
             break;
@@ -163,7 +187,7 @@ void *process_message(struct message * data){
       response=0;
     }
     else{
-      while(strcmp(aux1->key,data->key)!=0){ //search for the key
+      while(strcmp(aux1->key,msg_local.key)!=0){ //search for the key
         if(aux1->next==NULL){//not found, sending result
           response=0;
           break;
@@ -222,7 +246,7 @@ void *process_message(struct message * data){
 
     bzero(&data, sizeof(struct message));
 
-    
+
 
     while(1){
      msg_not_copied = 1;

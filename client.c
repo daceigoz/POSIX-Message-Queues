@@ -22,6 +22,14 @@ int main(){
     printf("Key inserted succesfully%d\n",set_);
   }
 
+  int set_2=set_value("adios","adios",2.0);
+  if(set_2==-1){
+    printf("Error or key already exist\n");
+  }
+  else{
+    printf("Key inserted succesfully%d\n",set_);
+  }
+
   char auxstring[256];
   float auxfloat=0.0f;
 
