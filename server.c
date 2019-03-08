@@ -18,6 +18,10 @@ void *process_message(struct message * data){
   int response,counter;
   struct node * aux1 = head;
   struct node * aux2 = head;
+  struct get_result results;
+  results.op_result=0;
+  strcpy(results.get_value1, "");
+  results.get_value2=0.0f;
   //Opening client queue
   mqd_t client_queue;
   client_queue = mq_open(data->queue_name, O_WRONLY);
@@ -31,12 +35,11 @@ void *process_message(struct message * data){
   pthread_mutex_lock(&mutex);
   switch (data->request_type) {
     case '0': //Init function
-      printf("Client queue has been opened\n");
+
       //CONTENT OF THE INIT FUNCTION
       //Release memory previously used
       while(aux1!=NULL){
         aux1=aux1->next;
-        free(aux2);
         aux2=aux1;
       }
       head=NULL;
@@ -76,28 +79,30 @@ void *process_message(struct message * data){
       break;
 
     case '2': //Get value function
-      response=0;
+      results.op_result=0;
       while(strcmp(head->key,data->key)!=0){ //search for the key
         if(aux1==NULL){//not found, sending error
-          response=-1;
-          break;
+          results.op_result=-1;
+          if(mq_send(client_queue, (char *)&results, sizeof(struct get_result), 0) == -1){
+            printf("Error sending the response\n");
+          }
+          mq_close(client_queue);
+          printf("Thread terminated\n");
+          pthread_mutex_unlock(&mutex);
+          pthread_exit(0);
         }
         aux1=aux1->next;
       }
-      struct get_result results;
-
-      results.op_result=response;
       strcpy(results.get_value1, aux1->value1);
       results.get_value2=aux1->value2;
-      pthread_mutex_unlock(&mutex);
       //Given that for the get function the kind of return message is a structure, the send message and queue closing will be done directly here:
       if(mq_send(client_queue, (char *)&results, sizeof(struct get_result), 0) == -1){
         printf("Error sending the response\n");
       }
       mq_close(client_queue);
       printf("Thread terminated\n");
+      pthread_mutex_unlock(&mutex);
       pthread_exit(0);
-      break;
 
     case '3': //Modify value function
       response=0;
@@ -205,7 +210,7 @@ void *process_message(struct message * data){
         mq_close(server_queue);
         return -1;
       }
-
+      printf("Message received from the client\n");
 
       if(pthread_create(&thid, &attr, (void*)process_message, &data) == -1){
         printf("Error creating the thread,\n");
