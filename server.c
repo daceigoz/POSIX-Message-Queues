@@ -12,9 +12,23 @@
 #include "get_result.h"
 
 pthread_mutex_t mutex;
+pthread_mutex_t mutex_msg;
+int msg_not_copied=1;
+pthread_cond_t cond_msg;
+
 struct node * head=NULL;
 
 void *process_message(struct message * data){
+
+  struct message msg_local;
+
+  pthread_mutex_lock(&mutex_msg);
+  memcpy((char *) &msg_local, (char *)data, sizeof(struct message));
+  msg_not_copied = 0;
+  pthread_cond_signal(&cond_msg);
+  pthread_mutex_unlock(&mutex_msg);
+  
+  pthread_mutex_lock(&mutex);
   int response,counter;
   struct node * aux1 = head;
   struct node * aux2 = head;
@@ -22,6 +36,7 @@ void *process_message(struct message * data){
   results.op_result=0;
   strcpy(results.get_value1, "");
   results.get_value2=0.0f;
+
   //Opening client queue
   mqd_t client_queue;
   client_queue = mq_open(data->queue_name, O_WRONLY);
@@ -32,7 +47,7 @@ void *process_message(struct message * data){
   }
 
   printf("request type: %c\n", data->request_type);
-  pthread_mutex_lock(&mutex);
+  
   switch (data->request_type) {
     case '0': //Init function
 
@@ -186,7 +201,10 @@ void *process_message(struct message * data){
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     struct message data;
-    pthread_mutex_init(&mutex,NULL);
+
+    pthread_mutex_init(&mutex, NULL);
+    pthread_mutex_init(&mutex_msg, NULL);
+    pthread_cond_init(&cond_msg, NULL);
 
 
     struct mq_attr queue_attr;
@@ -204,7 +222,10 @@ void *process_message(struct message * data){
 
     bzero(&data, sizeof(struct message));
 
+    
+
     while(1){
+     msg_not_copied = 1;
       if(mq_receive(server_queue, (char *)&data, sizeof(struct message), 0) == -1){
         perror("Error receiving a message on the server side\n");
         mq_close(server_queue);
@@ -215,6 +236,14 @@ void *process_message(struct message * data){
       if(pthread_create(&thid, &attr, (void*)process_message, &data) == -1){
         printf("Error creating the thread,\n");
         return -1;
+      }
+
+      /* wait for thread to copy message */
+      pthread_mutex_lock(&mutex_msg);
+      while (msg_not_copied){
+      	pthread_cond_wait(&cond_msg, &mutex_msg);
+	msg_not_copied = 0;
+	pthread_mutex_unlock(&mutex_msg);
       }
     }
 
