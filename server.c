@@ -53,8 +53,9 @@ void *process_message(struct message * data){
       //CONTENT OF THE INIT FUNCTION
       //Release memory previously used
       while(aux1!=NULL){
-        aux1=aux1->next;
         aux2=aux1;
+        free(aux2);
+        aux1=aux1->next;
       }
       head=NULL;
       response=0; //init correct
@@ -62,16 +63,6 @@ void *process_message(struct message * data){
 
     case '1': //Set value function
     printf("-------------Set function-------------\n");
-      if(aux1==NULL){//check header
-        head=malloc(sizeof(struct node));
-        strcpy(head->key, msg_local.key);
-        strcpy(head->value1, msg_local.value1);
-        head->value2=msg_local.value2;
-        head->next=NULL;
-        response=0; //set correct
-        printf("Key inserted succesfully.\n");
-      }
-      else{
         int exists=0;
         while(aux1!=NULL){ //checking if the key already exists in the server
           if(strcmp(aux1->key,msg_local.key)==0){
@@ -93,7 +84,7 @@ void *process_message(struct message * data){
           response=-1; //In this case the key already exists in the server
           printf("Key already exists, sending error...\n");
         }
-      }
+
       break;
 
     case '2': //Get value function
@@ -147,7 +138,7 @@ void *process_message(struct message * data){
         break;
       }
       response=0;
-      while(strcmp(head->key,msg_local.key)!=0){ //search for the key
+      while(strcmp(aux1->key,msg_local.key)!=0){ //search for the key
         if(aux1==NULL){//not found, sending error
           response=-1;
           printf("Key not found, sending error...\n");
@@ -162,27 +153,25 @@ void *process_message(struct message * data){
 
     case '4': //Delete key function
     printf("-------------Delete function-------------\n");
-      if (strcmp(head->key,msg_local.key)==0 && head!=NULL){//check header
+      if (strcmp(aux1->key,msg_local.key)==0 && aux1!=NULL){//check header
         head=aux1->next;
         free(aux1);
         response=0;
       }
       else{
         response=0;
-        while(strcmp(aux1->next->key,msg_local.key)!=0){ //search for the key
-          if(aux1->next==NULL){//not found
-            response = -1;
-            printf("Key not found, sending error...\n");
-            break;
-          }
+        while(strcmp(aux1->key,msg_local.key)!=0 && aux1!=NULL){ //search for the key
+          aux2=aux1;
           aux1=aux1->next;
         }
+        if(aux1==NULL){
+          printf("Key not found, sending error...\n");
+          response=-1;
+          break;
+        }
         printf("Deleting the key...\n");
-      aux2=aux1->next;
-      if(aux2->next!=NULL){
-        aux1->next=aux2->next;//change pointers
-      }
-      free(aux2);//delete the key
+      aux2->next=aux1->next;//change pointers
+      free(aux1);//delete the key
     }
     break;
 
