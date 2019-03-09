@@ -160,7 +160,7 @@ void *process_message(struct message * data){
       }
       else{
         response=0;
-        while(strcmp(aux1->key,msg_local.key)!=0 && aux1!=NULL){ //search for the key
+        while(aux1!=NULL&&strcmp(aux1->key,msg_local.key)!=0 ){ //search for the key
           aux2=aux1;
           aux1=aux1->next;
         }

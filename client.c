@@ -36,7 +36,7 @@ printf("\n");
 int set_, exist_,items,i;
 char buffer [256];
 char * str;
-  for(i=0;i<14;i++){
+  for(i=0;i<14000;i++){
     str=rand_string(buffer,5);
     set_=set_value(rand_string(buffer,5),"hola",1.1);
     if(set_==-1){
@@ -65,7 +65,7 @@ char * str;
     printf("\n");
 }
 int delete_,j;
-    for(j=0;j<14;j++){
+    for(j=0;j<14000;j++){
       str=rand_string(buffer,5);
       delete_=delete_key(rand_string(buffer,5));
       if(delete_==-1){
@@ -76,6 +76,14 @@ int delete_,j;
       }
   printf("\n");
 }
+items=num_items();
+if(items==-1){
+  printf("Error on counting items\n");
+}
+else{
+  printf("There are: %d items in the server.\n", items);
+}
+printf("\n");
 /*
   int set_=set_value("hola","hola",1.1);
   if(set_==-1){
