@@ -71,14 +71,28 @@ int delete_,j;
       if(delete_==-1){
         printf("Error or key doesn't exist\n");
       }
-      else{
+      else{items=num_items();
+    if(items==-1){
+      printf("Error on counting items\n");
+    }
+    else{
+      printf("There are: %d items in the server.\n", items);
+    }
+    printf("\n");
         printf("Key %s deleted succesfully\n",str);
       }
   printf("\n");
 }
 items=num_items();
 if(items==-1){
-  printf("Error on counting items\n");
+  printf("Error on counting items\n");items=num_items();
+    if(items==-1){
+      printf("Error on counting items\n");
+    }
+    else{
+      printf("There are: %d items in the server.\n", items);
+    }
+    printf("\n");
 }
 else{
   printf("There are: %d items in the server.\n", items);
