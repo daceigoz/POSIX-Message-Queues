@@ -191,18 +191,18 @@ void *process_message(struct message * data){
       response=1;
     if(aux1==NULL){
       response=0;
-      printf("Key not found, sending result...\n");
     }
     else{
       while(strcmp(aux1->key,msg_local.key)!=0){ //search for the key
         if(aux1->next==NULL){//not found, sending result
           response=0;
-          printf("Key not found, sending result...\n");
           break;
         }
         aux1=aux1->next;
       }
-      printf("Key was found, sending result...\n");
+      if(response) printf("Key was found, sending result...\n");
+      else printf("Key not found, sending result...\n");
+
   }
     break;
 

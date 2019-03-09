@@ -30,7 +30,7 @@ int main(){
 printf("\n");
 
 //Inifnity loop inserting keys
-
+/*
 int set_, exist_,items;
 char buffer [256];
 char * str;
@@ -62,9 +62,8 @@ char * str;
     }
 
   printf("\n");
-}
+}*/
 
-/*
   int set_=set_value("hola","hola",1.1);
   if(set_==-1){
     printf("Error or key already exist\n");
@@ -133,7 +132,7 @@ printf("\n");
   else{
     printf("There are: %d items in the server.\n", items);
   }
-*/
+
 
 
 }
