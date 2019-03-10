@@ -29,7 +29,7 @@ char *random_str(char *str, size_t size){
 }
 
 int main(){
-  int init_=init();
+int init_=init();
 printf("Response value from the server is: %d\n", init_);
 printf("\n");
 
@@ -72,6 +72,9 @@ int delete_, modify_, get_, j;
       modify_=modify_value(str, "adios", 0.0);
       if(modify_==-1){
         printf("Error or key doesn't exist\n");
+      }
+      else{
+        printf("Key %s modified succesfully\n",str);
       }
       char get_v1[256];
       float get_v2=0.0f;
