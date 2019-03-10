@@ -103,20 +103,19 @@ void *process_message(struct message * data){
       }
 
       results.op_result=0;
-      while(strcmp(aux1->key,msg_local.key)!=0){ //search for the key
-        printf("Searching the key...\n");
-        if(aux1==NULL){//not found, sending error
-          printf("Key not found, sending error...\n");
-          results.op_result=-1;
-          if(mq_send(client_queue, (char *)&results, sizeof(struct get_result), 0) == -1){
-            printf("Error sending the response\n");
-          }
-          mq_close(client_queue);
-          printf("Thread terminated.\n");
-          pthread_mutex_unlock(&mutex);
-          pthread_exit(0);
-        }
+      while(aux1!=NULL&&strcmp(aux1->key,msg_local.key)!=0){ //search for the key
         aux1=aux1->next;
+      }
+      if(aux1==NULL){//not found, sending error
+        printf("Key not found, sending error...\n");
+        results.op_result=-1;
+        if(mq_send(client_queue, (char *)&results, sizeof(struct get_result), 0) == -1){
+          printf("Error sending the response\n");
+        }
+        mq_close(client_queue);
+        printf("Thread terminated.\n");
+        pthread_mutex_unlock(&mutex);
+        pthread_exit(0);
       }
       printf("Key found, sending values...\n");
       strcpy(results.get_value1, aux1->value1);
@@ -138,13 +137,13 @@ void *process_message(struct message * data){
         break;
       }
       response=0;
-      while(strcmp(aux1->key,msg_local.key)!=0){ //search for the key
-        if(aux1==NULL){//not found, sending error
-          response=-1;
-          printf("Key not found, sending error...\n");
-          break;
-        }
+      while(aux1!=NULL&&strcmp(aux1->key,msg_local.key)!=0){ //search for the key
         aux1=aux1->next;
+      }
+      if(aux1==NULL){//not found, sending error
+        response=-1;
+        printf("Key not found, sending error...\n");
+        break;
       }
       strcpy(aux1->value1, msg_local.value1);
       aux1->value2=msg_local.value2;
@@ -153,7 +152,7 @@ void *process_message(struct message * data){
 
     case '4': //Delete key function
     printf("-------------Delete function-------------\n");
-      if (strcmp(aux1->key,msg_local.key)==0 && aux1!=NULL){//check header
+      if (aux1!=NULL&&strcmp(aux1->key,msg_local.key)==0){//check header
         head=aux1->next;
         free(aux1);
         response=0;
@@ -255,7 +254,6 @@ void *process_message(struct message * data){
         mq_close(server_queue);
         return -1;
       }
-      printf("Message received from the client.\n");
 
       if(pthread_create(&thid, &attr, (void*)process_message, &data) == -1){
         printf("Error creating the thread.\n");
@@ -265,9 +263,9 @@ void *process_message(struct message * data){
       /* wait for thread to copy message */
       pthread_mutex_lock(&mutex_msg);
       while (msg_not_copied){
-      	pthread_cond_wait(&cond_msg, &mutex_msg);
-	msg_not_copied = 0;
-	pthread_mutex_unlock(&mutex_msg);
+      pthread_cond_wait(&cond_msg, &mutex_msg);
+	    msg_not_copied = 0;
+	    pthread_mutex_unlock(&mutex_msg);
       }
     }
 

@@ -1,5 +1,5 @@
 
-  #include <printf.h>
+#include <printf.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <mqueue.h>
@@ -11,13 +11,17 @@
 #include "keys.h"
 #include "message.h"
 
-static char *rand_string(char *str, size_t size){
-    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJK...";
-    if (size) {
+#define LOOP_SIZE 1000
+#define RANDOM_STR_LENGTH 5 //It will be the number -1
+
+//Random string generator for testing (inspire by code from the internet):
+char *random_str(char *str, size_t size){
+    char dictionary[] = "abcdefghijklmnopqrstuvwxyz";
+    if(size){
         --size;
-        for (size_t n = 0; n < size; n++) {
-            int key = rand() % (int) (sizeof charset - 1);
-            str[n] = charset[key];
+        for(size_t i=0;i<size;i++){
+            int key = rand()%(int)(sizeof dictionary-1);
+            str[i] = dictionary[key];
         }
         str[size] = '\0';
     }
@@ -26,9 +30,7 @@ static char *rand_string(char *str, size_t size){
 
 int main(){
   int init_=init();
-
-
-  printf("Response value from the server is: %d\n", init_);
+printf("Response value from the server is: %d\n", init_);
 printf("\n");
 
 //Inifnity loop inserting keys
@@ -36,9 +38,9 @@ printf("\n");
 int set_, exist_,items,i;
 char buffer [256];
 char * str;
-  for(i=0;i<14000;i++){
-    str=rand_string(buffer,5);
-    set_=set_value(rand_string(buffer,5),"hola",1.1);
+  for(i=0;i<LOOP_SIZE;i++){
+    str=random_str(buffer,RANDOM_STR_LENGTH);
+    set_=set_value(str,"hola",1.1);
     if(set_==-1){
       printf("Error or key already exist\n");
     }
@@ -64,28 +66,32 @@ char * str;
     }
     printf("\n");
 }
-int delete_,j;
-    for(j=0;j<14000;j++){
-      str=rand_string(buffer,5);
-      delete_=delete_key(rand_string(buffer,5));
-      if(delete_==-1){
+int delete_, modify_, get_, j;
+    for(j=0;j<LOOP_SIZE;j++){
+      str=random_str(buffer,RANDOM_STR_LENGTH);
+      modify_=modify_value(str, "adios", 0.0);
+      if(modify_==-1){
         printf("Error or key doesn't exist\n");
       }
-      else{items=num_items();
-    if(items==-1){
-      printf("Error on counting items\n");
-    }
-    else{
-      printf("There are: %d items in the server.\n", items);
-    }
-    printf("\n");
-        printf("Key %s deleted succesfully\n",str);
+      char get_v1[256];
+      float get_v2=0.0f;
+      get_=get_value(str, get_v1, &get_v2);
+      if(get_==-1){
+        printf("Error on get value, key may not exist.\n");
       }
-  printf("\n");
-}
-items=num_items();
-if(items==-1){
-  printf("Error on counting items\n");items=num_items();
+      else{
+      printf("Got value1: %s\n", get_v1);
+      printf("Got value2: %f\n", get_v2);
+    }
+      delete_=delete_key(str);
+      if(delete_==-1){
+        printf("Error on delete key, key may not exist.\n");
+      }
+      else{
+        printf("Key %s deleted succesfully\n",str);
+        }
+          printf("\n");
+    items=num_items();
     if(items==-1){
       printf("Error on counting items\n");
     }
@@ -94,10 +100,7 @@ if(items==-1){
     }
     printf("\n");
 }
-else{
-  printf("There are: %d items in the server.\n", items);
-}
-printf("\n");
+
 /*
   int set_=set_value("hola","hola",1.1);
   if(set_==-1){
